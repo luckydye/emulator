@@ -7,9 +7,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "web-dev-server --node-resolve --open --app-index build/index.html",
-    "build": "rollup -c --compact",
     "build:w": "rollup -c -w --compact",
-    "build:lib": "wasm-pack build lib/emulator --target web"
+    "build:lib": "wasm-pack build lib/emulator --target web",
+    "build": "rollup -c --compact"
   },
   "repository": {
     "type": "git",
