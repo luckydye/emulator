@@ -16,36 +16,6 @@ pub fn set_input_state(input_state: &[u8]) {
     log(&format!("Hello, {:?}!", input_state));
 }
 
-// /graphics 
-// Tile Sets
-
-
-// /memory
-// Long byte Array u8 ints
-// - Rom 
-// - Video RAM
-// - Work RAM
-
-
-// /cpu
-// memory bus
-// program counter
-// instructions
-//  - add
-//  - sub
-//  - and
-//  - or
-//  - xor
-//  - inc
-//  - dec
-//  - rr
-//  - srl
-//  - scf
-// registers
-
-
-// frame capping
-// ...
 
 
 // i/o
