@@ -33,3 +33,15 @@ fn main() {
 
 // frame capping
 // ...
+
+
+// i/o
+// - Gamepad API and custom Keybaord API in js
+//   Store input state in Memory Buffer for lookup from webassambly
+// - OffscreenCanvas no work in safari so.... 
+//   and SharedArrayBuffer not supported so..... 
+//   copy buffer I guess or like WebAssembly.Memory or something 
+
+
+
+

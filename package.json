@@ -1,0 +1,30 @@
+{
+  "name": "emulator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c --compact",
+    "build:w": "rollup -c -w --compact"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luckydye/emulator.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luckydye/emulator/issues"
+  },
+  "homepage": "https://github.com/luckydye/emulator#readme",
+  "dependencies": {
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-typescript": "^8.3.0",
+    "rollup": "^2.60.1",
+    "typescript": "^4.5.2"
+  }
+}
