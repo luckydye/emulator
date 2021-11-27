@@ -1,85 +1,96 @@
 
-const memory = new WebAssembly.Memory({ initial: 1, maximum: 1 });
-
-const inputStateBuffer = new Uint8Array(memory.buffer);
-const statePointers: { [key: string]: number } = {};
-
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
+const memory = new WebAssembly.Memory({ initial: 1, maximum: 1 });
+
+const inputStateBuffer = new Uint8Array(memory.buffer);
+
+const BUFFER_STATE_KEY_SIZE = 2;
+const BUFFER_STATE_DEVICE_SIZE = 1;
+const BUFFER_STATE_STATE_SIZE = 1;
+const BUFFER_STATE_SIZE = BUFFER_STATE_KEY_SIZE + BUFFER_STATE_DEVICE_SIZE + BUFFER_STATE_STATE_SIZE;
+
 const gamepads = new Set();
+const statePointers: { [key: string]: number } = {};
 
 let nextBufferIndex = 0;
 
 /*
     inputStateBuffer = [
         [
-            key: byte[8]  // 8 byte string for key name, eg: "Button0_" or "Button12" or "A_______" or "Enter___" or "Bckspace"
+            key: byte[2]  // 8 byte string for key name, eg: "Button0_" or "Button12" or "A_______" or "Enter___" or "Bckspace"
+            device: byte
             state: byte
         ] // 9 bytes
         ...
     ];
 */
 
-function getKeyState(keyId: string) {
-    const index = getKeyStateIndex(keyId);
-    const keyState = inputStateBuffer[index + 8];
-    return keyState;
-}
-
-function parseInputStateToMap(inputStateBuffer: Uint8Array) {
-    const map: { [key: string]: number } = {};
+function parseInputStateToMap(inputStateBuffer: Uint8Array): any {
+    const map: { [key: string]: any } = {};
     let index = 0;
     let firstByte = -1;
     while (firstByte !== 0) {
         firstByte = inputStateBuffer[index];
         if (firstByte !== 0) {
-            const keyBytes = inputStateBuffer.slice(index, index + 8);
-            const keyState = inputStateBuffer[index + 8];
-            let keyByteLen = 0;
-            for (let i = 0; i < 8; i++) {
-                if (keyBytes[i] === 0) break;
-                keyByteLen = i;
-            }
-            const keyId = textDecoder.decode(keyBytes.slice(0, keyByteLen + 1));
-            map[keyId] = keyState;
-            index += 9;
+            const keyBytes = inputStateBuffer.slice(index, index + BUFFER_STATE_KEY_SIZE);
+            const keyDevice = inputStateBuffer[index + BUFFER_STATE_KEY_SIZE];
+            const keyState = inputStateBuffer[index + BUFFER_STATE_KEY_SIZE + BUFFER_STATE_DEVICE_SIZE];
+            const keyId = textDecoder.decode(keyBytes);
+            map[keyId] = { device: keyDevice, state: keyState };
+            index += BUFFER_STATE_SIZE;
         }
     }
     return map;
 }
 
-function pushInputState(keyId: string) {
+function pushInputState(keyId: string, deviceIndex: number): number {
     const byteId = textEncoder.encode(keyId);
     const stateIndex = nextBufferIndex;
     statePointers[keyId] = stateIndex;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < BUFFER_STATE_KEY_SIZE; i++) {
         const index = stateIndex + i;
         inputStateBuffer[index] = byteId[i];
     }
-    nextBufferIndex += 9;
+    inputStateBuffer[stateIndex + BUFFER_STATE_KEY_SIZE] = deviceIndex;
+    nextBufferIndex += BUFFER_STATE_SIZE;
     return stateIndex;
 }
 
-function getKeyStateIndex(keyId: string): number {
-    if (keyId in statePointers) {
-        return statePointers[keyId];
-    } else {
-        return pushInputState(keyId);
+function getButtonStateValue(deviceId: number, keyId: string): number | null {
+    const index = getButtonStateIndex(deviceId, keyId);
+    if(index > -1) {
+        return inputStateBuffer[index + BUFFER_STATE_KEY_SIZE + BUFFER_STATE_DEVICE_SIZE];
     }
+    return null;
 }
 
-function updateInputState(keyId: string, state: number) {
-    const stateBufferIndex = getKeyStateIndex(keyId);
-    inputStateBuffer[stateBufferIndex + 8] = state;
-
-    // TODO: remove log
-    // console.log(parseInputStateToMap(inputStateBuffer));
-    // console.log([getKeyState("C0Axe0"), getKeyState("C0Axe1")], [getKeyState("C0Axe2"), getKeyState("C0Axe3")]);
+function getButtonStateIndex(deviceId: number, buttonId: string): number {
+    for(let btnnId in statePointers) {
+        if(btnnId == buttonId) {
+            const pointer = statePointers[btnnId];
+            const device = inputStateBuffer[pointer + BUFFER_STATE_KEY_SIZE];
+            if(device == deviceId) {
+                return statePointers[buttonId];
+                break;
+            }
+        }
+    }
+    return -1;
 }
 
-function parseKeyIndex(key: string) {
-    // make sure its max 8 bytes
+function updateInputState(buttonId: string, state: number, deviceIndex: number) {
+    let stateBufferIndex = getButtonStateIndex(deviceIndex, buttonId);
+    if(stateBufferIndex === -1) {
+        stateBufferIndex = pushInputState(buttonId, deviceIndex);
+    }
+
+    inputStateBuffer[stateBufferIndex + BUFFER_STATE_KEY_SIZE + BUFFER_STATE_DEVICE_SIZE] = state;
+}
+
+function mapInputToButton(key: string): string | null {
+    // make sure its max 2 bytes
     switch (key) {
         case 'Backspace':   key = "Bckspace"; break;
         case 'ContextMenu': key = "ContextMenu"; break;
@@ -90,27 +101,40 @@ function parseKeyIndex(key: string) {
         case 'ScrollLock':  key = "ScrllLck"; break;
         case ' ':           key = "Space"; break;
     }
-    return key.toLocaleLowerCase();
+    if(key.length <= 2) {
+        // TODO: just proxy all key within 2 bytes through for now, no mapping to any buttons
+        return key.toLocaleUpperCase();
+    }
+    return null;
 }
 
 window.addEventListener('keydown', e => {
-    const lastState = getKeyState(parseKeyIndex(e.key));
-    if (lastState === 0) {
-        updateInputState(parseKeyIndex(e.key), 1);
+    const lastState = getButtonStateValue(0, mapInputToButton(e.key));
+    if (lastState == null || lastState === 0) {
+        const btnId = mapInputToButton(e.key);
+        if(btnId != null) {
+            updateInputState(btnId, 1, 0);
+            e.preventDefault();
+        }
     }
 });
 
 window.addEventListener('keyup', e => {
-    updateInputState(parseKeyIndex(e.key), 0);
+    const btnId = mapInputToButton(e.key);
+    if(btnId != null) {
+        updateInputState(btnId, 0, 0);
+        e.preventDefault();
+    }
 });
 
 window.addEventListener("gamepadconnected", e => {
     gamepads.add(e.gamepad);
-    console.log(e.gamepad);
+    console.log('Connected gamepad:', e.gamepad.id);
 });
 
 window.addEventListener("gamepaddisconnected", e => {
     gamepads.delete(e.gamepad);
+    console.log('Disconnected gamepad:', e.gamepad.id);
 });
 
 function pollGamepads() {
@@ -124,15 +148,12 @@ function pollGamepads() {
             const btns = controler.buttons;
     
             for(let axe in axes) {
-                const keyId = `C${index}Axe${axe}`;
                 const state = ((axes[axe] / 2) + 0.5) * 64;
-                updateInputState(keyId, state);
+                updateInputState(mapInputToButton(`A${axe}`), state, index + 1);
             }
             for(let btn in btns) {
                 const button = btns[btn];
-                const keyId = `C${index}Btn${btn}`;
-                const state = button.value;
-                updateInputState(keyId, state);
+                updateInputState(mapInputToButton(`B${btn}`), button.value, index + 1);
             }
         }
     }

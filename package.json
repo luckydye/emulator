@@ -9,7 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c --compact",
-    "build:w": "rollup -c -w --compact"
+    "build:w": "rollup -c -w --compact",
+    "build:lib": "wasm-pack build lib/emulator --target web"
   },
   "repository": {
     "type": "git",
