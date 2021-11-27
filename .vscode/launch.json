@@ -6,23 +6,35 @@
     "configurations": [
         {
             "command": "npm start",
-            "name": "Run npm start",
+            "name": "Dev Server",
             "request": "launch",
-            "type": "node-terminal"
+            "type": "node-terminal",
+            "presentation": {
+                "hidden": true,
+                "group": "build",
+                "order": 1
+            },
+            "internalConsoleOptions": "neverOpen"
         },
         {
             "command": "npm run build:w",
-            "name": "Run npm run build:w",
+            "name": "Build Watch",
             "request": "launch",
-            "type": "node-terminal"
+            "type": "node-terminal",
+            "presentation": {
+                "hidden": true,
+                "group": "build",
+                "order": 1
+            },
+            "internalConsoleOptions": "neverOpen"
         }
     ],
     "compounds": [
         {
             "name": "Dev",
             "configurations": [
-                "Run npm start",
-                "Run npm build:w"
+                "Build Watch",
+                "Dev Server"
             ]
         }
     ]
