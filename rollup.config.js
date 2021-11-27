@@ -1,4 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
+import { wasm } from '@rollup/plugin-wasm';
 import node_resolve from '@rollup/plugin-node-resolve';
 
 const production = false;
@@ -13,6 +14,7 @@ export default [
         plugins: [
             node_resolve(),
             typescript(),
-        ],
+            wasm(),
+        ]
     }
 ];

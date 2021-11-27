@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "directories": {
-    "example": "examples"
-  },
+  "directories": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "web-dev-server --node-resolve --open --app-index build/index.html",
     "build": "rollup -c --compact",
     "build:w": "rollup -c -w --compact",
     "build:lib": "wasm-pack build lib/emulator --target web"
@@ -22,9 +21,11 @@
     "url": "https://github.com/luckydye/emulator/issues"
   },
   "homepage": "https://github.com/luckydye/emulator#readme",
-  "dependencies": {
+  "devDependencies": {
+    "@web/dev-server": "^0.1.28",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "@rollup/plugin-typescript": "^8.3.0",
+    "@rollup/plugin-wasm": "^5.1.2",
     "rollup": "^2.60.1",
     "typescript": "^4.5.2"
   }

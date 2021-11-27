@@ -109,10 +109,10 @@ function mapInputToButton(key: string): string | null {
 }
 
 window.addEventListener('keydown', e => {
-    const lastState = getButtonStateValue(0, mapInputToButton(e.key));
-    if (lastState == null || lastState === 0) {
-        const btnId = mapInputToButton(e.key);
-        if(btnId != null) {
+    const btnId = mapInputToButton(e.key);
+    if(btnId != null) {
+        const lastState = getButtonStateValue(0, btnId);
+        if (lastState == null || lastState === 0) {
             updateInputState(btnId, 1, 0);
             e.preventDefault();
         }
@@ -149,11 +149,17 @@ function pollGamepads() {
     
             for(let axe in axes) {
                 const state = ((axes[axe] / 2) + 0.5) * 64;
-                updateInputState(mapInputToButton(`A${axe}`), state, index + 1);
+                const btnId = mapInputToButton(`A${axe}`);
+                if(btnId != null) {
+                    updateInputState(btnId, state, index + 1);
+                }
             }
             for(let btn in btns) {
                 const button = btns[btn];
-                updateInputState(mapInputToButton(`B${btn}`), button.value, index + 1);
+                const btnId = mapInputToButton(`B${btn}`);
+                if(btnId != null) {
+                    updateInputState(btnId, button.value, index + 1);
+                }
             }
         }
     }
