@@ -26,7 +26,8 @@
                 "group": "build",
                 "order": 1
             },
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "${defaultBuildTask}"
         }
     ],
     "compounds": [
