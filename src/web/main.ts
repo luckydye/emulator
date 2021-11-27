@@ -1,13 +1,27 @@
-import wasm_module from '../../lib/emulator/pkg/emulator_bg.wasm';
-import { greet, default as initWasm } from '../../lib/emulator/pkg/emulator.js';
+// @ts-ignore ignore this mod not found error cause its just how it is
+import emulatorModule from '../../lib/emulator/pkg/emulator_bg.wasm';
+import * as emulator from '../../lib/emulator/pkg/emulator.js';
 
-import './Input';
+import Input from './Input';
+
+declare global {
+    function log(str: string): void;
+}
+
+window.log = (str: string) => {
+    console.log(str);
+}
 
 async function initModule() {
+    await emulator.default(await emulatorModule());
 
-    await initWasm(await wasm_module());
+    log('wasm module loaded');
 
-    greet("test");
+    Input.onInput((obj: any) => {
+        log(obj);
+
+        emulator.set_input_state(Input.getMemory());
+    })
 }
 
 initModule();

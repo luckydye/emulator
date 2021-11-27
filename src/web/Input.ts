@@ -2,14 +2,14 @@
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-const memory = new WebAssembly.Memory({ initial: 1, maximum: 1 });
-
-const inputStateBuffer = new Uint8Array(memory.buffer);
 
 const BUFFER_STATE_KEY_SIZE = 2;
 const BUFFER_STATE_DEVICE_SIZE = 1;
 const BUFFER_STATE_STATE_SIZE = 1;
 const BUFFER_STATE_SIZE = BUFFER_STATE_KEY_SIZE + BUFFER_STATE_DEVICE_SIZE + BUFFER_STATE_STATE_SIZE;
+
+const memory = new Uint8Array(new ArrayBuffer(200 * BUFFER_STATE_SIZE));
+const inputStateBuffer = new Uint8Array(memory.buffer);
 
 const gamepads = new Set();
 const statePointers: { [key: string]: number } = {};
@@ -87,6 +87,8 @@ function updateInputState(buttonId: string, state: number, deviceIndex: number) 
     }
 
     inputStateBuffer[stateBufferIndex + BUFFER_STATE_KEY_SIZE + BUFFER_STATE_DEVICE_SIZE] = state;
+
+    Input.emitInput(parseInputStateToMap(inputStateBuffer));
 }
 
 function mapInputToButton(key: string): string | null {
@@ -99,7 +101,6 @@ function mapInputToButton(key: string): string | null {
         case 'ArrowUp':     key = "ArrwUp"; break;
         case 'ArrowDown':   key = "ArrwDown"; break;
         case 'ScrollLock':  key = "ScrllLck"; break;
-        case ' ':           key = "Space"; break;
     }
     if(key.length <= 2) {
         // TODO: just proxy all key within 2 bytes through for now, no mapping to any buttons
@@ -172,10 +173,25 @@ function updateGamepads() {
 
 updateGamepads();
 
+const listeners: Set<Function> = new Set();
+
 export default class Input {
 
-    static test() {
+    static getMemory(): Uint8Array {
+        return inputStateBuffer;
+    }
 
+    static onInput(callback: Function) {
+        listeners.add(callback);
+        return () => {
+            listeners.delete(callback);
+        }
+    }
+
+    static emitInput(data: any) {
+        for(let listner of listeners) {
+            listner(data);
+        }
     }
 
 }
