@@ -15,6 +15,9 @@ impl MemoryBus {
     fn read_byte(&self, address: u16) -> u8 {
         self.memory[address as usize]
     }
+    fn write_byte(&self, address: u16, byte: u8) {
+        self.memory[address as usize] = byte;
+    }
 }
 
 impl CPU {
@@ -30,6 +33,34 @@ impl CPU {
 
     fn execute(&mut self, instruction: instructions::Instruction) -> u16 {
         match instruction {
+            instructions::Instruction::LD(load_type) => match load_type {
+                instructions::LoadType::Byte(target, source) => {
+                    let source_value = match source {
+                        instructions::LoadByteSource::A => self.registers.a,
+                        instructions::LoadByteSource::D8 => self.read_next_byte(),
+                        instructions::LoadByteSource::HLI => self.bus.read_byte(self.registers.get_hl()),
+                        _ => {
+                            panic!("TODO: implement other sources")
+                        }
+                    };
+                    match target {
+                        instructions::LoadByteTarget::A => self.registers.a = source_value,
+                        instructions::LoadByteTarget::HLI => {
+                            self.bus.write_byte(self.registers.get_hl(), source_value)
+                        }
+                        _ => {
+                            panic!("TODO: implement other targets")
+                        }
+                    };
+                    match source {
+                        instructions::LoadByteSource::D8 => self.pc.wrapping_add(2),
+                        _ => self.pc.wrapping_add(1),
+                    }
+                }
+                _ => {
+                    panic!("TODO: implement other load types")
+                }
+            },
             instructions::Instruction::JP(test) => {
                 let jump_condition = match test {
                     instructions::JumpTest::NotZero => !self.registers.f.zero,
@@ -59,6 +90,10 @@ impl CPU {
                 self.pc
             }
         }
+    }
+
+    fn read_next_byte(&self) -> u8 {
+        self.bus.read_byte(self.pc + 1)
     }
 
     fn jump(&self, should_jump: bool) -> u16 {
@@ -115,17 +150,4 @@ impl CPU {
 // memory bus
 // program counter
 // instructions
-//  - add
-//  - sub
-//  - and
-//  - or
-//  - xor
-//  - inc
-//  - dec
-//  - rr
-//  - srl
-//  - scf
 // registers
-
-// frame capping
-// ...

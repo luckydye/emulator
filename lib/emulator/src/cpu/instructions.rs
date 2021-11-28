@@ -16,6 +16,33 @@ pub enum JumpTest {
     Always,
 }
 
+pub enum LoadByteTarget {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    HLI,
+}
+
+pub enum LoadByteSource {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    D8,
+    HLI,
+}
+
+pub enum LoadType {
+    Byte(LoadByteTarget, LoadByteSource),
+}
+
 pub enum Instruction {
     ADD(ArithmeticTarget),
     ADDHL(ArithmeticTarget),
@@ -45,9 +72,11 @@ pub enum Instruction {
     SRA(ArithmeticTarget),
     SLA(ArithmeticTarget),
     SWAP(ArithmeticTarget),
-    
     // Jumps
     JP(JumpTest),
+
+    // Loading
+    LD(LoadType),
 }
 
 impl Instruction {
