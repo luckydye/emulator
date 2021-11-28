@@ -4,7 +4,7 @@ fn main() {
 
     let mut cpu_instance = cpu::CPU::new();
 
-    cpu_instance.execute(cpu::instructions::Instruction::ADD(cpu::instructions::ArithmeticTarget::C));
+    cpu_instance.step();
 
     println!("{:?}", cpu_instance.registers.a);
 

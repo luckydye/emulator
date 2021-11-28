@@ -1,4 +1,3 @@
-
 pub enum ArithmeticTarget {
     A,
     B,
@@ -7,6 +6,14 @@ pub enum ArithmeticTarget {
     E,
     H,
     L,
+}
+
+pub enum JumpTest {
+    NotZero,
+    Zero,
+    NotCarry,
+    Carry,
+    Always,
 }
 
 pub enum Instruction {
@@ -38,4 +45,39 @@ pub enum Instruction {
     SRA(ArithmeticTarget),
     SLA(ArithmeticTarget),
     SWAP(ArithmeticTarget),
+    
+    // Jumps
+    JP(JumpTest),
+}
+
+impl Instruction {
+    pub fn from_byte(byte: u8, prefixed: bool) -> Option<Instruction> {
+        if prefixed {
+            Instruction::from_byte_prefixed(byte)
+        } else {
+            Instruction::from_byte_not_prefixed(byte)
+        }
+    }
+
+    pub fn from_byte_prefixed(byte: u8) -> Option<Instruction> {
+        match byte {
+            // 0x00 => Some(Instruction::RLC(PrefixTarget::B)),
+            _ =>
+            /* TODO: Add mapping for rest of instructions */
+            {
+                None
+            }
+        }
+    }
+
+    pub fn from_byte_not_prefixed(byte: u8) -> Option<Instruction> {
+        match byte {
+            // 0x02 => Some(Instruction::INC(IncDecTarget::BC)),
+            _ =>
+            /* TODO: Add mapping for rest of instructions */
+            {
+                None
+            }
+        }
+    }
 }
