@@ -4,18 +4,27 @@ pub mod registers;
 pub struct CPU {
     pub registers: registers::Registers,
     pub pc: u16,
+    pub sp: u16,
     pub bus: MemoryBus,
+    pub is_halted: bool,
 }
 
+#[derive(Copy, Clone)]
 pub struct MemoryBus {
     memory: [u8; 0xFFFF],
 }
 
 impl MemoryBus {
+    fn read_word(&self, address: u16) -> u16 {
+        let a = self.memory[address as usize];
+        let b = self.memory[(address as usize) + 1];
+        (a as u16) << 8 | b as u16
+    }
+
     fn read_byte(&self, address: u16) -> u8 {
         self.memory[address as usize]
     }
-    fn write_byte(&self, address: u16, byte: u8) {
+    fn write_byte(mut self, address: u16, byte: u8) {
         self.memory[address as usize] = byte;
     }
 }
@@ -25,20 +34,81 @@ impl CPU {
         CPU {
             registers: registers::Registers::new(),
             pc: 0,
+            sp: 0,
             bus: MemoryBus {
                 memory: [0; 0xFFFF],
             },
+            is_halted: false,
         }
+    }
+
+    fn push(&mut self, value: u16) {
+        self.sp = self.sp.wrapping_sub(1);
+        self.bus.write_byte(self.sp, ((value & 0xFF00) >> 8) as u8);
+        self.sp = self.sp.wrapping_sub(1);
+        self.bus.write_byte(self.sp, (value & 0xFF) as u8);
+    }
+
+    fn pop(&mut self) -> u16 {
+        let lsb = self.bus.read_byte(self.sp) as u16;
+        self.sp = self.sp.wrapping_add(1);
+        let msb = self.bus.read_byte(self.sp) as u16;
+        self.sp = self.sp.wrapping_add(1);
+        (msb << 8) | lsb
     }
 
     fn execute(&mut self, instruction: instructions::Instruction) -> u16 {
         match instruction {
+            instructions::Instruction::HALT() => {
+                self.is_halted = true;
+                self.pc.wrapping_add(1)
+            }
+            instructions::Instruction::CALL(test) => {
+                let jump_condition = match test {
+                    instructions::JumpTest::NotZero => !self.registers.f.zero,
+                    _ => {
+                        panic!("TODO: support more conditions")
+                    }
+                };
+                self.call(jump_condition)
+            }
+            instructions::Instruction::RET(test) => {
+                let jump_condition = match test {
+                    instructions::JumpTest::NotZero => !self.registers.f.zero,
+                    _ => {
+                        panic!("TODO: support more conditions")
+                    }
+                };
+                self.return_(jump_condition)
+            }
+            instructions::Instruction::POP(target) => {
+                let result = self.pop();
+                match target {
+                    instructions::StackTarget::BC => self.registers.set_bc(result),
+                    _ => {
+                        panic!("TODO: support more targets")
+                    }
+                };
+                self.pc.wrapping_add(1)
+            }
+            instructions::Instruction::PUSH(target) => {
+                let value = match target {
+                    instructions::StackTarget::BC => self.registers.get_bc(),
+                    _ => {
+                        panic!("TODO: support more targets")
+                    }
+                };
+                self.push(value);
+                self.pc.wrapping_add(1)
+            }
             instructions::Instruction::LD(load_type) => match load_type {
                 instructions::LoadType::Byte(target, source) => {
                     let source_value = match source {
                         instructions::LoadByteSource::A => self.registers.a,
                         instructions::LoadByteSource::D8 => self.read_next_byte(),
-                        instructions::LoadByteSource::HLI => self.bus.read_byte(self.registers.get_hl()),
+                        instructions::LoadByteSource::HLI => {
+                            self.bus.read_byte(self.registers.get_hl())
+                        }
                         _ => {
                             panic!("TODO: implement other sources")
                         }
@@ -92,8 +162,30 @@ impl CPU {
         }
     }
 
+    fn call(&mut self, should_jump: bool) -> u16 {
+        let next_pc = self.pc.wrapping_add(3);
+        if should_jump {
+            self.push(next_pc);
+            self.read_next_word()
+        } else {
+            next_pc
+        }
+    }
+
+    fn return_(&mut self, should_jump: bool) -> u16 {
+        if should_jump {
+            self.pop()
+        } else {
+            self.pc.wrapping_add(1)
+        }
+    }
+
     fn read_next_byte(&self) -> u8 {
         self.bus.read_byte(self.pc + 1)
+    }
+
+    fn read_next_word(&self) -> u16 {
+        self.bus.read_word(self.pc + 1)
     }
 
     fn jump(&self, should_jump: bool) -> u16 {

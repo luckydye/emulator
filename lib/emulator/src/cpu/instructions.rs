@@ -41,9 +41,26 @@ pub enum LoadByteSource {
 
 pub enum LoadType {
     Byte(LoadByteTarget, LoadByteSource),
+    Word(LoadByteTarget, LoadByteSource),
+    AFromIndirect(u8),
+    IndirectFromA(u8),
+    AFromByteAddress(u8),
+    ByteAddressFromA(u8),
+}
+
+pub enum StackTarget {
+    BC,
+    HL,
+    DE
 }
 
 pub enum Instruction {
+    POP(StackTarget),
+    PUSH(StackTarget),
+    
+    RET(JumpTest),
+    CALL(JumpTest),
+
     ADD(ArithmeticTarget),
     ADDHL(ArithmeticTarget),
     ADC(ArithmeticTarget),
@@ -77,6 +94,9 @@ pub enum Instruction {
 
     // Loading
     LD(LoadType),
+
+    NOP(),
+    HALT(),
 }
 
 impl Instruction {
