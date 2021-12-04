@@ -27,7 +27,9 @@ pub enum LoadByteTarget {
     E,
     H,
     L,
+    HL,
     HLI,
+    SP,
 }
 
 pub enum LoadByteSource {
@@ -38,18 +40,19 @@ pub enum LoadByteSource {
     E,
     H,
     L,
-    D8,
+    HL,
     HLI,
+    D8,
+    D16,
 }
 
 pub enum LoadType {
-    Byte(LoadByteTarget, LoadByteSource),
-    Word(LoadByteTarget, LoadByteSource),
+    Byte(LoadByteSource, LoadByteTarget),
+    Word(LoadByteSource, LoadByteTarget),
     AFromIndirect(u8),
     IndirectFromA(u8),
     AFromByteAddress(u8),
     ByteAddressFromA(u8),
-    BytesToSP(),
 }
 
 pub enum StackTarget {
