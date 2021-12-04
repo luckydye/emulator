@@ -21,7 +21,11 @@ async function initModule() {
         log(obj);
 
         emulator.set_input_state(Input.getMemory());
-    })
+    });
+
+    const rom = await (await fetch('../roms/Pokemon-Red-(UE).gb')).arrayBuffer();
+
+    emulator.emulatue(new Uint8Array(rom));
 }
 
 initModule();

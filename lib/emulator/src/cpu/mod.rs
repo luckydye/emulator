@@ -1,6 +1,8 @@
 pub mod instructions;
 pub mod registers;
 
+use instructions::Instruction;
+
 pub struct CPU {
     pub registers: registers::Registers,
     pub pc: u16,
@@ -20,7 +22,6 @@ impl MemoryBus {
         let b = self.memory[(address as usize) + 1];
         (a as u16) << 8 | b as u16
     }
-
     fn read_byte(&self, address: u16) -> u8 {
         self.memory[address as usize]
     }
@@ -42,6 +43,10 @@ impl CPU {
         }
     }
 
+    pub fn load_rom(&mut self, data: [u8; 0xFFFF]) {
+        self.bus.memory = data;
+    }
+
     fn push(&mut self, value: u16) {
         self.sp = self.sp.wrapping_sub(1);
         self.bus.write_byte(self.sp, ((value & 0xFF00) >> 8) as u8);
@@ -57,108 +62,17 @@ impl CPU {
         (msb << 8) | lsb
     }
 
-    fn execute(&mut self, instruction: instructions::Instruction) -> u16 {
+    fn execute(&mut self, instruction: Instruction) -> u16 {
         match instruction {
-            instructions::Instruction::HALT() => {
-                self.is_halted = true;
-                self.pc.wrapping_add(1)
-            }
-            instructions::Instruction::CALL(test) => {
-                let jump_condition = match test {
-                    instructions::JumpTest::NotZero => !self.registers.f.zero,
-                    _ => {
-                        panic!("TODO: support more conditions")
-                    }
-                };
-                self.call(jump_condition)
-            }
-            instructions::Instruction::RET(test) => {
-                let jump_condition = match test {
-                    instructions::JumpTest::NotZero => !self.registers.f.zero,
-                    _ => {
-                        panic!("TODO: support more conditions")
-                    }
-                };
-                self.return_(jump_condition)
-            }
-            instructions::Instruction::POP(target) => {
-                let result = self.pop();
-                match target {
-                    instructions::StackTarget::BC => self.registers.set_bc(result),
-                    _ => {
-                        panic!("TODO: support more targets")
-                    }
-                };
-                self.pc.wrapping_add(1)
-            }
-            instructions::Instruction::PUSH(target) => {
-                let value = match target {
-                    instructions::StackTarget::BC => self.registers.get_bc(),
-                    _ => {
-                        panic!("TODO: support more targets")
-                    }
-                };
-                self.push(value);
-                self.pc.wrapping_add(1)
-            }
-            instructions::Instruction::LD(load_type) => match load_type {
-                instructions::LoadType::Byte(target, source) => {
-                    let source_value = match source {
-                        instructions::LoadByteSource::A => self.registers.a,
-                        instructions::LoadByteSource::D8 => self.read_next_byte(),
-                        instructions::LoadByteSource::HLI => {
-                            self.bus.read_byte(self.registers.get_hl())
-                        }
-                        _ => {
-                            panic!("TODO: implement other sources")
-                        }
-                    };
-                    match target {
-                        instructions::LoadByteTarget::A => self.registers.a = source_value,
-                        instructions::LoadByteTarget::HLI => {
-                            self.bus.write_byte(self.registers.get_hl(), source_value)
-                        }
-                        _ => {
-                            panic!("TODO: implement other targets")
-                        }
-                    };
-                    match source {
-                        instructions::LoadByteSource::D8 => self.pc.wrapping_add(2),
-                        _ => self.pc.wrapping_add(1),
-                    }
-                }
-                _ => {
-                    panic!("TODO: implement other load types")
-                }
-            },
-            instructions::Instruction::JP(test) => {
-                let jump_condition = match test {
-                    instructions::JumpTest::NotZero => !self.registers.f.zero,
-                    instructions::JumpTest::NotCarry => !self.registers.f.carry,
-                    instructions::JumpTest::Zero => self.registers.f.zero,
-                    instructions::JumpTest::Carry => self.registers.f.carry,
-                    instructions::JumpTest::Always => true,
-                };
-                self.jump(jump_condition)
-            }
-            instructions::Instruction::ADD(target) => {
-                match target {
-                    instructions::ArithmeticTarget::C => {
-                        let value = self.registers.c;
-                        let new_value = self.add(value);
-                        self.registers.a = new_value;
-                        self.pc.wrapping_add(1)
-                    }
-                    _ => {
-                        /* TODO: support more targets */
-                        self.pc
-                    }
-                }
-            }
-            _ => {
-                /* TODO: support more instructions */
-                self.pc
-            }
+            Instruction::HALT() => instructions::HALT::execute(self),
+            Instruction::CALL(test) => instructions::RET::execute(self, test),
+            Instruction::RET(test) => instructions::RET::execute(self, test),
+            Instruction::POP(target) => instructions::POP::execute(self, target),
+            Instruction::PUSH(target) => instructions::PUSH::execute(self, target),
+            Instruction::JP(test) => instructions::JP::execute(self, test),
+            Instruction::LD(load_type) => instructions::LD::execute(self, load_type),
+            Instruction::ADD(target) => instructions::ADD::execute(self, target),
+            _ => self.pc,
         }
     }
 
@@ -210,8 +124,7 @@ impl CPU {
             instruction_byte = self.bus.read_byte(self.pc + 1);
         }
 
-        let next_pc = if let Some(instruction) =
-            instructions::Instruction::from_byte(instruction_byte, prefixed)
+        let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte, prefixed)
         {
             self.execute(instruction)
         } else {
@@ -237,9 +150,3 @@ impl CPU {
         new_value
     }
 }
-
-// /cpu
-// memory bus
-// program counter
-// instructions
-// registers
