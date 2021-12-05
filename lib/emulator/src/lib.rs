@@ -3,14 +3,13 @@ use wasm_bindgen::prelude::*;
 mod cpu;
 
 #[wasm_bindgen]
-extern {
-    pub fn alert(s: &str);
-    pub fn log(s: &[u8]);
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 }
 
-#[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}!", name));
+fn debug(string: &str) {
+    log(&format!("[emulator] {}", string));
 }
 
 #[wasm_bindgen]
@@ -18,50 +17,67 @@ pub fn set_input_state(input_state: &[u8]) {
     
 }
 
-enum EmulationError {
-    RomLoadingError,
-    CPUStepError,
-    LogError,
-}
-
-fn load_rom(cpu_instance: &mut cpu::CPU, momory: &[u8]) -> Result<(), EmulationError> {
+fn load_rom(cpu_instance: &mut cpu::CPU, momory: &[u8]) {
     let mut mem: [u8; 0xFFFF] = [0; 0xFFFF];
 
     let mut i = 0;
     for _ in mem {
-        mem[i] = momory[i];
-        i += 1;
+        if i < momory.len() {
+            mem[i] = momory[i];
+            i += 1;
+        } else {
+            break;
+        }
     }
 
-    log(&mem);
-
     cpu_instance.load_rom(mem);
-    Ok(())
-}
-
-fn step_cpu(cpu_instance: &mut cpu::CPU) -> Result<(), EmulationError> {
-    cpu_instance.step();
-    Err(EmulationError::CPUStepError)
 }
 
 #[wasm_bindgen]
 pub fn emulatue(data: &[u8]) {
     let mut cpu_instance = cpu::CPU::new();
+    debug("Loading rom");
+
+    debug(&format!("{:?}", data));
+
+    load_rom(&mut cpu_instance, &data);
+    debug("Boot Rom loaded.");
+    
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
+    cpu_instance.step();
 
 
-    let mut do_steps = || -> Result<(), EmulationError> {
-        load_rom(&mut cpu_instance, data)?;
-        step_cpu(&mut cpu_instance)?;
-        Ok(())
-    };
+    debug("Program end");
 
-    if let Err(_err) = do_steps() {
-        println!("Failed to perform necessary steps");
-    }
+    log(&format!("\nCounters: "));
+    log(&format!("sp: {:?}", cpu_instance.sp));
+    log(&format!("pc: {:?}", cpu_instance.pc));
 
-    println!("{:?}", cpu_instance.registers.a);
+    log(&format!("\nRegisters: "));
+    log(&format!("a: {:?}", cpu_instance.registers.a));
+    log(&format!("b: {:?}", cpu_instance.registers.b));
+    log(&format!("c: {:?}", cpu_instance.registers.c));
+    log(&format!("d: {:?}", cpu_instance.registers.d));
+    log(&format!("e: {:?}", cpu_instance.registers.e));
+    log(&format!("f: {:?}", cpu_instance.registers.f));
+    log(&format!("h: {:?}", cpu_instance.registers.h));
+    log(&format!("l: {:?}", cpu_instance.registers.l));
+
+    log(&format!("bc: {:?}", cpu_instance.registers.get_bc()));
+    log(&format!("de: {:?}", cpu_instance.registers.get_de()));
+    log(&format!("hl: {:?}", cpu_instance.registers.get_hl()));
 }
-
 
 
 // i/o

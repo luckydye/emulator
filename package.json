@@ -9,6 +9,7 @@
     "start": "web-dev-server --node-resolve --open --app-index build/index.html",
     "build:w": "rollup -c -w --compact",
     "build:lib": "wasm-pack build lib/emulator --target web",
+    "prebuild": "npm run build:lib",
     "build": "rollup -c --compact"
   },
   "repository": {

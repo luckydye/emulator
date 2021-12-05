@@ -12,8 +12,17 @@ window.log = (str: string) => {
     console.log(str);
 }
 
+async function sleep(s: number): Promise<boolean> {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(true), s * 1000);
+    })
+}
+
 async function initModule() {
-    await emulator.default(await emulatorModule());
+    const thread = await emulator.default(await emulatorModule());
+    console.log(thread.memory);
+
+    await sleep(1);
 
     log('wasm module loaded');
 
@@ -23,7 +32,9 @@ async function initModule() {
         emulator.set_input_state(Input.getMemory());
     });
 
-    const rom = await (await fetch('../roms/Pokemon-Red-(UE).gb')).arrayBuffer();
+    const rom = await (await fetch('../roms/boot-rom.gb')).arrayBuffer();
+
+    console.log(rom);
 
     emulator.emulatue(new Uint8Array(rom));
 }
