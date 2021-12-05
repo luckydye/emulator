@@ -33,16 +33,19 @@ impl CPU {
 
     fn execute(&mut self, instruction: Instruction) -> u16 {
         match instruction {
+            Instruction::NOP() => instructions::NOP::execute(self),
             Instruction::HALT() => instructions::HALT::execute(self),
             Instruction::CALL(jump) => instructions::RET::execute(self, jump),
             Instruction::RET(jump) => instructions::RET::execute(self, jump),
             Instruction::POP(target) => instructions::POP::execute(self, target),
             Instruction::PUSH(target) => instructions::PUSH::execute(self, target),
             Instruction::JP(jump) => instructions::JP::execute(self, jump),
+            Instruction::JR(jump) => instructions::JR::execute(self, jump),
             Instruction::LD(load_type) => instructions::LD::execute(self, load_type),
             Instruction::ADD(target) => instructions::ADD::execute(self, target),
             Instruction::ADDHL(target) => instructions::ADDHL::execute(self, target),
             Instruction::XOR(target) => instructions::XOR::execute(self, target),
+            Instruction::BIT(bit_target, reg_target, flag_target) => instructions::BIT::execute(self, bit_target, reg_target, flag_target),
             _ => self.pc,
         }
     }

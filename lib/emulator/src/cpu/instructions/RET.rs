@@ -1,10 +1,10 @@
-use super::targets::{JumpTest};
+use super::targets::{JumpCondition};
 use crate::cpu::CPU;
 
-pub fn execute(cpu: &mut CPU, test: JumpTest) -> u16 {
+pub fn execute(cpu: &mut CPU, test: JumpCondition) -> u16 {
 
     let jump_condition = match test {
-        JumpTest::NotZero => !cpu.registers.f.zero,
+        JumpCondition::NotZero => !cpu.registers.f.zero,
         _ => {
             panic!("TODO: support more conditions")
         }

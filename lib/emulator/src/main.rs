@@ -36,13 +36,35 @@ fn main() {
     load_rom(&mut cpu_instance, &data);
     log_step("Boot Rom loaded.");
     
+
     step_cpu(&mut cpu_instance);
-    step_cpu(&mut cpu_instance);
-    step_cpu(&mut cpu_instance);
-    step_cpu(&mut cpu_instance);
+
+    loop {
+        step_cpu(&mut cpu_instance);
+
+        if cpu_instance.is_halted {
+            break;
+        }
+    }
+    
 
     log_step("Program end");
 
+    println!("\nCounters: ");
     println!("sp: {:?}", cpu_instance.sp);
     println!("pc: {:?}", cpu_instance.pc);
+
+    println!("\nRegisters: ");
+    println!("a: {:?}", cpu_instance.registers.a);
+    println!("b: {:?}", cpu_instance.registers.b);
+    println!("c: {:?}", cpu_instance.registers.c);
+    println!("d: {:?}", cpu_instance.registers.d);
+    println!("e: {:?}", cpu_instance.registers.e);
+    println!("f: {:?}", cpu_instance.registers.f);
+    println!("h: {:?}", cpu_instance.registers.h);
+    println!("l: {:?}", cpu_instance.registers.l);
+
+    println!("bc: {:?}", cpu_instance.registers.get_bc());
+    println!("de: {:?}", cpu_instance.registers.get_de());
+    println!("hl: {:?}", cpu_instance.registers.get_hl());
 }

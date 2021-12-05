@@ -39,7 +39,21 @@ pub fn execute(cpu: &mut CPU, load_type: LoadType) -> u16 {
                 LoadByteSource::D16 => cpu.pc.wrapping_add(3),
                 _ => cpu.pc.wrapping_add(1),
             }
-        }
+        },
+        LoadType::ByteAddressFromRegister(source, target) => {
+            let source_value = match source {
+                LoadByteSource::A => cpu.registers.a,
+                _ => panic!("TODO: implement other sources")
+            };
+            match target {
+                LoadByteTarget::HLDEC => {
+                    cpu.bus.write_byte(cpu.registers.get_hl(), source_value);
+                    cpu.registers.dec_hl();
+                },
+                _ => panic!("TODO: implement other targets")
+            };
+            cpu.pc.wrapping_add(1)
+        },
         _ => panic!("TODO: implement other load types")    
     }
 

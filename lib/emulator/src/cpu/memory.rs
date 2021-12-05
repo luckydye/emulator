@@ -1,4 +1,3 @@
-
 #[derive(Copy, Clone)]
 pub struct MemoryBus {
     pub memory: [u8; 0xFFFF],

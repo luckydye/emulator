@@ -11,7 +11,7 @@ pub enum ArithmeticTarget {
     BC,
 }
 
-pub enum JumpTest {
+pub enum JumpCondition {
     NotZero,
     Zero,
     NotCarry,
@@ -29,6 +29,7 @@ pub enum LoadByteTarget {
     L,
     HL,
     HLI,
+    HLDEC,
     SP,
 }
 
@@ -46,13 +47,21 @@ pub enum LoadByteSource {
     D16,
 }
 
+pub enum BitTarget {
+    Seven,
+}
+
+pub enum FlagTarget {
+    Z,
+}
+
 pub enum LoadType {
     Byte(LoadByteSource, LoadByteTarget),
     Word(LoadByteSource, LoadByteTarget),
     AFromIndirect(u8),
     IndirectFromA(u8),
     AFromByteAddress(u8),
-    ByteAddressFromA(u8),
+    ByteAddressFromRegister(LoadByteSource, LoadByteTarget),
 }
 
 pub enum StackTarget {

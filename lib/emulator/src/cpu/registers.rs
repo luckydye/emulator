@@ -9,6 +9,7 @@ pub struct Registers {
     pub l: u8,
 }
 
+#[derive(Debug)]
 pub struct FlagsRegister {
     pub zero: bool,
     pub subtract: bool,
@@ -77,6 +78,16 @@ impl Registers {
         (self.h as u16) << 8 | self.l as u16
     }
     pub fn set_hl(&mut self, value: u16) {
+        self.h = ((value & 0xFF00) >> 8) as u8;
+        self.l = (value & 0xFF) as u8;
+    }
+    pub fn dec_hl(&mut self) {
+        let value = self.get_hl() - 1;
+        self.h = ((value & 0xFF00) >> 8) as u8;
+        self.l = (value & 0xFF) as u8;
+    }
+    pub fn inc_hl(&mut self) {
+        let value = self.get_hl() + 1;
         self.h = ((value & 0xFF00) >> 8) as u8;
         self.l = (value & 0xFF) as u8;
     }
