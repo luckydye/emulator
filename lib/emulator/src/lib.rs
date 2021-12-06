@@ -12,10 +12,24 @@ fn debug(string: &str) {
     log(&format!("[emulator] {}", string));
 }
 
+
+// memory com
+
+const WASM_MEMORY_BUFFER_SIZE: usize = 0xFFFF;
+static mut WASM_MEMORY_BUFFER: [u8; WASM_MEMORY_BUFFER_SIZE] = [0; WASM_MEMORY_BUFFER_SIZE];
+
 #[wasm_bindgen]
-pub fn set_input_state(input_state: &[u8]) {
-    
+pub fn get_memory_pointer() -> *const u8 {
+  let pointer: *const u8;
+  unsafe {
+    pointer = WASM_MEMORY_BUFFER.as_ptr();
+  }
+
+  return pointer;
 }
+
+
+// emulator functions
 
 fn load_rom(cpu_instance: &mut cpu::CPU, momory: &[u8]) {
     let mut mem: [u8; 0xFFFF] = [0; 0xFFFF];

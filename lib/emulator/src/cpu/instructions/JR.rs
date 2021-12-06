@@ -18,14 +18,14 @@ pub fn execute(cpu: &mut CPU, test: JumpCondition) -> u16 {
         let v = b & !sign_mask;
 
         if b & sign_mask > 0 {
-            // negative
-            cpu.pc.wrapping_sub(v as u16)
-        } else {
             // positve
             cpu.pc.wrapping_add(v as u16)
+        } else {
+            // negative
+            cpu.pc.wrapping_sub(v as u16)
         }
 
     } else {
-        cpu.jump(jump_condition)
+        cpu.pc.wrapping_add(2)
     }
 }

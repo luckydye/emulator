@@ -62,23 +62,55 @@ pub enum Instruction {
     HALT(),
 }
 
+fn log_inst(n: u8, string: &str) {
+    println!("{:#02x}  |  {}", n, string);
+}
+
 impl Instruction {
 
     pub fn from_byte(byte: u8, prefixed: bool) -> Option<Instruction> {
         if prefixed {
             match byte {
-                0x7C => Some(Instruction::BIT(BitTarget::Seven, ArithmeticTarget::H, FlagTarget::Z)),
+                0x7C => {
+                    log_inst(byte, "Copy compliment of the the 7th in reg H to the Z Flag");
+                    Some(Instruction::BIT(BitTarget::Seven, ArithmeticTarget::H, FlagTarget::Z))
+                },
                 _ => None
             }
         } else {
             match byte {
-                0x00 => Some(Instruction::NOP()),
-                0x31 => Some(Instruction::LD(LoadType::Word(LoadByteSource::D16, LoadByteTarget::SP))),
-                0xAF => Some(Instruction::XOR(ArithmeticTarget::A)),
-                0x09 => Some(Instruction::ADDHL(ArithmeticTarget::BC)), // BC + HL -> HL
-                0x20 => Some(Instruction::JR(JumpCondition::NotZero)),
-                0x21 => Some(Instruction::LD(LoadType::Word(LoadByteSource::D16, LoadByteTarget::HL))),
-                0x32 => Some(Instruction::LD(LoadType::ByteAddressFromRegister(LoadByteSource::A, LoadByteTarget::HLDEC))), // reg.a -> loc(HL) => dec(HL)
+                0x00 => {
+                    log_inst(byte, "Noop");
+                    Some(Instruction::NOP())
+                },
+                0x31 => {
+                    log_inst(byte, "Load 2 bytes from direct memory into Stack Pointer");
+                    Some(Instruction::LD(LoadType::Word(LoadByteSource::D16, LoadByteTarget::SP)))
+                },
+                0xAF => {
+                    log_inst(byte, "XOR with A and ... A");
+                    Some(Instruction::XOR(ArithmeticTarget::A))
+                },
+                0x09 => {
+                    log_inst(byte, "Add BC to HL");
+                    Some(Instruction::ADDHL(ArithmeticTarget::BC))
+                }, // BC + HL -> HL
+                0x20 => {
+                    log_inst(byte, "If Zero flag is false jump (signed byte from direct memory) at pc");
+                    Some(Instruction::JR(JumpCondition::NotZero))
+                },
+                0x21 => {
+                    log_inst(byte, "Load 2 bytes from direct memory into HL register");
+                    Some(Instruction::LD(LoadType::Word(LoadByteSource::D16, LoadByteTarget::HL)))
+                },
+                0x32 => {
+                    log_inst(byte, "Load register a into memory location stored in HL, then decrement HL");
+                    Some(Instruction::LD(LoadType::ByteAddressFromRegister(LoadByteSource::A, LoadByteTarget::HLDEC)))
+                }, // reg.a -> loc(HL) => dec(HL)
+                0x0E => {
+                    log_inst(byte, "Load d8 into reg C");
+                    Some(Instruction::LD(LoadType::Byte(LoadByteSource::D8, LoadByteTarget::C)))
+                },
                 _ => None
             }
         }

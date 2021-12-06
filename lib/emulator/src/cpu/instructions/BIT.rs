@@ -14,7 +14,9 @@ pub fn execute(cpu: &mut CPU, bit_target: BitTarget, reg_target: ArithmeticTarge
         BitTarget::Seven => {
             match flag_target {
                 FlagTarget::Z => {
-                    cpu.registers.f.zero = (0x01 & reg_value) == 0;
+                    cpu.registers.f.zero = (0b00000010 & reg_value) > 0;
+                    cpu.registers.f.subtract = true;
+                    cpu.registers.f.half_carry = true;
                 }
             }
         },

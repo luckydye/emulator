@@ -20,7 +20,12 @@ async function sleep(s: number): Promise<boolean> {
 
 async function initModule() {
     const thread = await emulator.default(await emulatorModule());
-    console.log(thread.memory);
+    
+    const wasmMemory = new Uint8Array(thread.memory.buffer);
+    let bufferPointer = thread.get_memory_pointer();
+    
+    wasmMemory[bufferPointer + 1] = 15;
+
 
     await sleep(1);
 

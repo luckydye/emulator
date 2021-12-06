@@ -22,6 +22,15 @@ const SUBTRACT_FLAG_BYTE_POSITION: u8 = 6;
 const HALF_CARRY_FLAG_BYTE_POSITION: u8 = 5;
 const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
+impl FlagsRegister {
+    pub fn to_u8(&self) -> u8 {
+        (if self.zero { 1 } else { 0 }) << ZERO_FLAG_BYTE_POSITION
+            | (if self.subtract { 1 } else { 0 }) << SUBTRACT_FLAG_BYTE_POSITION
+            | (if self.half_carry { 1 } else { 0 }) << HALF_CARRY_FLAG_BYTE_POSITION
+            | (if self.carry { 1 } else { 0 }) << CARRY_FLAG_BYTE_POSITION
+    }
+}
+
 impl std::convert::From<FlagsRegister> for u8 {
     fn from(flag: FlagsRegister) -> u8 {
         (if flag.zero { 1 } else { 0 }) << ZERO_FLAG_BYTE_POSITION

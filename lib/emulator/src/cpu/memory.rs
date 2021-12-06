@@ -7,7 +7,7 @@ impl MemoryBus {
     pub fn read_word(&self, address: u16) -> u16 {
         let a = self.memory[address as usize];
         let b = self.memory[(address as usize) + 1];
-        (a as u16) << 8 | b as u16
+        (b as u16) << 8 | a as u16
     }
     pub fn read_byte(&self, address: u16) -> u8 {
         self.memory[address as usize]
