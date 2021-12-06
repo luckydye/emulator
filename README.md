@@ -8,6 +8,10 @@ Console to be supported:
 - NES
 - N64
 
+## TODO
+
+- Make debugger UI
+
 ## Resources:
 
 https://rylev.github.io/DMG-01/public/book/cpu/executing_instructions.html  
