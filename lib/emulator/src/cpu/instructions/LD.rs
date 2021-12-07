@@ -15,6 +15,7 @@ pub fn execute(cpu: &mut CPU, load_type: LoadType) -> u16 {
             };
             match target {
                 LoadByteTarget::A => cpu.registers.a = source_value,
+                LoadByteTarget::C => cpu.registers.c = source_value,
                 LoadByteTarget::HLI => {
                     cpu.bus.write_byte(cpu.registers.get_hl(), source_value)
                 }

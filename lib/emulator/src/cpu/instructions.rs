@@ -75,7 +75,9 @@ impl Instruction {
                     log_inst(byte, "Copy compliment of the the 7th in reg H to the Z Flag");
                     Some(Instruction::BIT(BitTarget::Seven, ArithmeticTarget::H, FlagTarget::Z))
                 },
-                _ => None
+                _ => {
+                    panic!("Prefixd instruction not implemented")
+                }
             }
         } else {
             match byte {
@@ -110,6 +112,19 @@ impl Instruction {
                 0x0E => {
                     log_inst(byte, "Load d8 into reg C");
                     Some(Instruction::LD(LoadType::Byte(LoadByteSource::D8, LoadByteTarget::C)))
+                },
+                0x3E => {
+                    log_inst(byte, "Load d8 into reg A");
+                    Some(Instruction::LD(LoadType::Byte(LoadByteSource::D8, LoadByteTarget::A)))
+                },
+                0xE2 => {
+                    log_inst(byte, "POP to HL");
+                    Some(Instruction::POP(StackTarget::HL))
+                },
+                0x0C => {
+                    log_inst(byte, "Increment C");
+                    panic!("Check if incrmenting C works yo")
+                    Some(Instruction::INC(ArithmeticTarget::C))
                 },
                 _ => None
             }

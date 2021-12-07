@@ -65,6 +65,10 @@ fn main() {
     step_cpu(&mut cpu_instance);    // 
     step_cpu(&mut cpu_instance);    // 
     step_cpu(&mut cpu_instance);    // 
+    step_cpu(&mut cpu_instance);    // 
+    step_cpu(&mut cpu_instance);    // 
+    step_cpu(&mut cpu_instance);    // 
+    step_cpu(&mut cpu_instance);    // 
 
 
     log_step("Program end");
