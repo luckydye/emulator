@@ -14,6 +14,7 @@ pub mod RET;
 pub mod CALL;
 pub mod XOR;
 pub mod BIT;
+pub mod INC;
 pub mod NOP;
 
 pub enum Instruction {
@@ -123,7 +124,6 @@ impl Instruction {
                 },
                 0x0C => {
                     log_inst(byte, "Increment C");
-                    panic!("Check if incrmenting C works yo")
                     Some(Instruction::INC(ArithmeticTarget::C))
                 },
                 _ => None

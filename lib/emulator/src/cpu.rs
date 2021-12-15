@@ -46,7 +46,11 @@ impl CPU {
             Instruction::ADDHL(target) => instructions::ADDHL::execute(self, target),
             Instruction::XOR(target) => instructions::XOR::execute(self, target),
             Instruction::BIT(bit_target, reg_target, flag_target) => instructions::BIT::execute(self, bit_target, reg_target, flag_target),
-            _ => self.pc,
+            Instruction::INC(target) => instructions::INC::execute(self, target),
+            _ => {
+                panic!("Instruction not executed at {}", self.pc);
+                self.pc
+            },
         }
     }
 
